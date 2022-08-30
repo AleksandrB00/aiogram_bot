@@ -2,6 +2,8 @@ import logging
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.dispatcher import FSMContext
+
 import config
 
 import math
@@ -14,8 +16,10 @@ bot = Dispatcher(token, storage=storage)
 
 users = config.fake_database['users']
 
-'''class Form(StatesGroup):
-    name = State()  '''
+class Pagination(StatesGroup):
+    current_page = State()
+    next_page = State()
+    prev_page = State()
 
 @bot.message_handler(regexp='Меню')
 async def menu(message):
@@ -99,9 +103,13 @@ async def all_users(message):
         types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{current_page}')
     )
     await message.answer(text, reply_markup=inline_markup)
+
 @bot.callback_query_handler(lambda call: True)
-async def callback_query(call):
+async def callback_query(call, state: FSMContext):
     query_type = call.data.split('_')[0]
+    async with state.proxy() as data:
+            data['current_page'] = int(call.data.split('_')[1])
+    print(data['current_page'])
     if query_type == 'next':
         total_pages = math.ceil(len(users) / 4)
         current_page = int(call.data.split('_')[1])
@@ -109,9 +117,9 @@ async def callback_query(call):
         if current_page*4 >= len(users):
             for user in users[current_page*4-4:len(users) + 1]:
                 inline_markup.add(types.InlineKeyboardButton(
-            text=user['name'],
-            callback_data=f'user_{user["id"]}'
-            ))
+                text=user['name'],
+                callback_data=f'user_{user["id"]}'
+                ))
             current_page -= 1
             inline_markup.row(
                 types.InlineKeyboardButton(text='Назад', callback_data=f'prev_{current_page}'),
@@ -130,7 +138,7 @@ async def callback_query(call):
             types.InlineKeyboardButton(text='Назад', callback_data='prev_page'),
             types.InlineKeyboardButton(text=f'{current_page-1}/{total_pages}', callback_data='None'),
             types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{current_page}')
-        )
+        ) 
         await call.message.edit_text(text="Пользователи:",
                               reply_markup=inline_markup)
     if query_type == 'prev':
