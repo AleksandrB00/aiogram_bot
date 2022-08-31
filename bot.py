@@ -231,17 +231,17 @@ async def callback_query(call, state: FSMContext):
                 reply_markup=inline_markup
             )
 
-    @bot.message_handler(lambda message: message.from_user.id in config.tg_bot_admin and message.text == 'Общий баланс')
-    async def total_balance(message):
-        markup = types.InlineKeyboardMarkup(row_width=2, resize_keyboard=True)
-        btn1 = types.InlineKeyboardButton('Меню')
-        btn2 = types.InlineKeyboardButton('Админка')
-        markup.add(btn1, btn2)
-        balance = 0
-        for user in users:
-            balance += user['balance']
-        text = f'Общий баланс: {balance}'
-        await message.answer(text, reply_markup=markup)
+@bot.message_handler(lambda message: message.from_user.id in config.tg_bot_admin and message.text == 'Общий баланс')
+async def total_balance(message):
+    markup = types.InlineKeyboardMarkup(row_width=2, resize_keyboard=True)
+    btn1 = types.InlineKeyboardButton('Меню')
+    btn2 = types.InlineKeyboardButton('Админка')
+    markup.add(btn1, btn2)
+    balance = 0
+    for user in users:
+        balance += user['balance']
+    text = f'Общий баланс: {balance}'
+    await message.answer(text, reply_markup=markup)
 
 
 if __name__ == '__main__':
