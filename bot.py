@@ -109,140 +109,137 @@ async def callback_query(call, state: FSMContext):
     await Pagination.current_page.set()
     async with state.proxy() as data:
         data['current_page'] = int(call.data.split('_')[1])
-    await state.update_data(current_page=data['current_page'])
-    if query_type == 'next':
-        total_pages = math.ceil(len(users) / 4)
-        current_page = int(call.data.split('_')[1])
-        inline_markup = types.InlineKeyboardMarkup()
-        if data['current_page']*4 >= len(users):
-            for user in users[data['current_page']*4-4:len(users) + 1]:
-                inline_markup.add(types.InlineKeyboardButton(
-                text=user['name'],
-                callback_data=f'user_{user["id"]}'
-                ))
-            current_page -= 1
-            inline_markup.row(
-                types.InlineKeyboardButton(text='Назад', callback_data=f'prev_{current_page}'),
-                types.InlineKeyboardButton(text=f'{current_page+1}/{total_pages}', callback_data='None')
-            )
-            await call.message.edit_text(text="Пользователи:",
-                              reply_markup=inline_markup)
-            return
-        for user in users[data['current_page']*4-4:data['current_page']*4]:
-            inline_markup.add(types.InlineKeyboardButton(
-            text=user['name'],
-            callback_data=f'user_{user["id"]}'
-        ))
-        current_page += 1
-        inline_markup.row(
-            types.InlineKeyboardButton(text='Назад', callback_data=f'prev_{current_page-2}'),
-            types.InlineKeyboardButton(text=f'{current_page-1}/{total_pages}', callback_data='None'),
-            types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{current_page}')
-        ) 
-        await call.message.edit_text(text="Пользователи:",
-                              reply_markup=inline_markup)
-    if query_type == 'prev':
-        total_pages = math.ceil(len(users) / 4)
-        current_page = int(call.data.split('_')[1])
-        inline_markup = types.InlineKeyboardMarkup()
-        if current_page == 1:
-            for user in users[0:data['current_page']*4]:
-                inline_markup.add(types.InlineKeyboardButton(
-                text=user['name'],
-                callback_data=f'user_{user["id"]}'
-                ))
-            current_page += 1
-            inline_markup.row(
-                types.InlineKeyboardButton(text=f'{current_page-1}/{total_pages}', callback_data='None'),
-                types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{current_page}')
-            )
-            await call.message.edit_text(text="Пользователи:",
-                              reply_markup=inline_markup)
-            return
-        for user in users[data['current_page']*4-4:data['current_page']*4]:
-            inline_markup.add(types.InlineKeyboardButton(
-            text=user['name'],
-            callback_data=f'user_{user["id"]}'
-            ))
-        current_page -= 1
-        inline_markup.row(
-            types.InlineKeyboardButton(text='Назад', callback_data=f'prev_{current_page}'),
-            types.InlineKeyboardButton(text=f'{current_page+1}/{total_pages}', callback_data='None'),
-            types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{current_page}'),
-        )
-        await call.message.edit_text(text="Пользователи:",
-                              reply_markup=inline_markup)
-    if query_type == 'user':
-        current_page = int(call.data.split('_')[1])
-        user_id = call.data.split('_')[1]
-        inline_markup = types.InlineKeyboardMarkup()
-        for user in users:
-            if str(user['id']) == user_id:
-                inline_markup.add(
-                    types.InlineKeyboardButton(text='Назад', callback_data=f'users_{current_page}'),
-                    types.InlineKeyboardButton(text='Удалить пользователя', callback_data=f'delete_user_{user_id}')
-                )
-                await call.message.edit_text(
-                    text=f'Данные по пользователю\n'
-                    f'ID:{user["id"]}\n'
-                    f'Name:{user["name"]}\n'
-                    f'Nick:{user["nick"]}\n'
-                    f'Balance:{user["balance"]}\n',
-                    reply_markup=inline_markup
-                )
-                break
-    if query_type == 'users':
-        total_pages = math.ceil(len(users) / 4)
-        current_page = 1
-        inline_markup = types.InlineKeyboardMarkup()
-        for user in users[:data['current_page']*4]:
-            inline_markup.add(types.InlineKeyboardButton(
-                text=user["name"],
-                callback_data=f'user_{user["id"]}'
-            ))
-        current_page += 1
-        inline_markup.row(
-            types.InlineKeyboardButton(text=f'{current_page-1}/{total_pages}', callback_data='None'),
-            types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{current_page}')
-        )
-        await call.message.edit_text(
-            text='Пользователи:',
-            reply_markup=inline_markup
-        )
-    if query_type == 'delete' and call.data.split('_')[1] == 'user':
-        total_pages = math.ceil(len(users) / 4)
-        user_id = int(call.data.split('_')[2])
-        current_page = 1
-        for i, user in enumerate(users):
-            if user['id'] == user_id:
-                users.pop(i)
+        await state.update_data(current_page=data['current_page'])
+        if query_type == 'next':
+            total_pages = math.ceil(len(users) / 4)
             inline_markup = types.InlineKeyboardMarkup()
-        for user in users[:data['current_page']*4]:
-            inline_markup.add(types.InlineKeyboardButton(
-                text=user["name"],
+            if data['current_page']*4 >= len(users):
+                for user in users[data['current_page']*4-4:len(users) + 1]:
+                    inline_markup.add(types.InlineKeyboardButton(
+                    text=user['name'],
+                    callback_data=f'user_{user["id"]}'
+                    ))
+                data['current_page'] -= 1
+                inline_markup.row(
+                    types.InlineKeyboardButton(text='Назад', callback_data=f'prev_{data["current_page"]}'),
+                    types.InlineKeyboardButton(text=f'{data["current_page"]+1}/{total_pages}', callback_data='None')
+                )
+                await call.message.edit_text(text="Пользователи:",
+                                reply_markup=inline_markup)
+                return
+            for user in users[data['current_page']*4-4:data['current_page']*4]:
+                inline_markup.add(types.InlineKeyboardButton(
+                text=user['name'],
                 callback_data=f'user_{user["id"]}'
             ))
-        current_page += 1
-        inline_markup.row(
-            types.InlineKeyboardButton(text=f'{current_page-1}/{total_pages}', callback_data='None'),
-            types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{current_page}')
-        )
-        await call.message.edit_text(
-            text='Пользователи:',
-            reply_markup=inline_markup
-        )
+            data['current_page'] += 1
+            inline_markup.row(
+                types.InlineKeyboardButton(text='Назад', callback_data=f'prev_{data["current_page"]-2}'),
+                types.InlineKeyboardButton(text=f'{data["current_page"]-1}/{total_pages}', callback_data='None'),
+                types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{data["current_page"]}')
+            ) 
+            await call.message.edit_text(text="Пользователи:",
+                                reply_markup=inline_markup)
+        if query_type == 'prev':
+            total_pages = math.ceil(len(users) / 4)
+            inline_markup = types.InlineKeyboardMarkup()
+            if data['current_page'] == 1:
+                for user in users[0:data['current_page']*4]:
+                    inline_markup.add(types.InlineKeyboardButton(
+                    text=user['name'],
+                    callback_data=f'user_{user["id"]}'
+                    ))
+                data['current_page'] += 1
+                inline_markup.row(
+                    types.InlineKeyboardButton(text=f'{data["current_page"]-1}/{total_pages}', callback_data='None'),
+                    types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{data["current_page"]}')
+                )
+                await call.message.edit_text(text="Пользователи:",
+                                reply_markup=inline_markup)
+                return
+            for user in users[data['current_page']*4-4:data['current_page']*4]:
+                inline_markup.add(types.InlineKeyboardButton(
+                text=user['name'],
+                callback_data=f'user_{user["id"]}'
+                ))
+            data['current_page'] -= 1
+            inline_markup.row(
+                types.InlineKeyboardButton(text='Назад', callback_data=f'prev_{data["current_page"]}'),
+                types.InlineKeyboardButton(text=f'{data["current_page"]+1}/{total_pages}', callback_data='None'),
+                types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{data["current_page"]}'),
+            )
+            await call.message.edit_text(text="Пользователи:",
+                                reply_markup=inline_markup)
+        if query_type == 'user':
+            user_id = call.data.split('_')[1]
+            inline_markup = types.InlineKeyboardMarkup()
+            for user in users:
+                if str(user['id']) == user_id:
+                    inline_markup.add(
+                        types.InlineKeyboardButton(text='Назад', callback_data=f'users_{data["current_page"]}'),
+                        types.InlineKeyboardButton(text='Удалить пользователя', callback_data=f'delete_user_{user_id}')
+                    )
+                    await call.message.edit_text(
+                        text=f'Данные по пользователю\n'
+                        f'ID:{user["id"]}\n'
+                        f'Name:{user["name"]}\n'
+                        f'Nick:{user["nick"]}\n'
+                        f'Balance:{user["balance"]}\n',
+                        reply_markup=inline_markup
+                    )
+                    break
+        if query_type == 'users':
+            total_pages = math.ceil(len(users) / 4)
+            inline_markup = types.InlineKeyboardMarkup()
+            data['current_page'] = 1
+            for user in users[:data['current_page']*4]:
+                inline_markup.add(types.InlineKeyboardButton(
+                    text=user["name"],
+                    callback_data=f'user_{user["id"]}'
+                ))
+            data['current_page'] += 1
+            inline_markup.row(
+                types.InlineKeyboardButton(text=f'{data["current_page"]-1}/{total_pages}', callback_data='None'),
+                types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{data["current_page"]}')
+            )
+            await call.message.edit_text(
+                text='Пользователи:',
+                reply_markup=inline_markup
+            )
+        if query_type == 'delete' and call.data.split('_')[1] == 'user':
+            total_pages = math.ceil(len(users) / 4)
+            user_id = int(call.data.split('_')[2])
+            data['current_page'] = 1
+            for i, user in enumerate(users):
+                if user['id'] == user_id:
+                    users.pop(i)
+                inline_markup = types.InlineKeyboardMarkup()
+            for user in users[:data['current_page']*4]:
+                inline_markup.add(types.InlineKeyboardButton(
+                    text=user["name"],
+                    callback_data=f'user_{user["id"]}'
+                ))
+            data["current_page"] += 1
+            inline_markup.row(
+                types.InlineKeyboardButton(text=f'{data["current_page"]-1}/{total_pages}', callback_data='None'),
+                types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{data["current_page"]}')
+            )
+            await call.message.edit_text(
+                text='Пользователи:',
+                reply_markup=inline_markup
+            )
 
-@bot.message_handler(lambda message: message.from_user.id in config.tg_bot_admin and message.text == 'Общий баланс')
-async def total_balance(message):
-    markup = types.InlineKeyboardMarkup(row_width=2, resize_keyboard=True)
-    btn1 = types.InlineKeyboardButton('Меню')
-    btn2 = types.InlineKeyboardButton('Админка')
-    markup.add(btn1, btn2)
-    balance = 0
-    for user in users:
-        balance += user['balance']
-    text = f'Общий баланс: {balance}'
-    await message.answer(text, reply_markup=markup)
+    @bot.message_handler(lambda message: message.from_user.id in config.tg_bot_admin and message.text == 'Общий баланс')
+    async def total_balance(message):
+        markup = types.InlineKeyboardMarkup(row_width=2, resize_keyboard=True)
+        btn1 = types.InlineKeyboardButton('Меню')
+        btn2 = types.InlineKeyboardButton('Админка')
+        markup.add(btn1, btn2)
+        balance = 0
+        for user in users:
+            balance += user['balance']
+        text = f'Общий баланс: {balance}'
+        await message.answer(text, reply_markup=markup)
 
 
 if __name__ == '__main__':
