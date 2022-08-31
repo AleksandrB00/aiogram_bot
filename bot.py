@@ -106,6 +106,30 @@ async def all_users(message):
 @bot.callback_query_handler(lambda call: True, state='*')
 async def callback_query(call, state: FSMContext):
     query_type = call.data.split('_')[0]
+    if query_type == 'delete' and call.data.split('_')[1] == 'user':
+            total_pages = math.ceil(len(users) / 4)
+            user_id = int(call.data.split('_')[2])
+            current_page = 1
+            for i, user in enumerate(users):
+                if user['id'] == user_id:
+                    users.pop(i)
+                inline_markup = types.InlineKeyboardMarkup()
+            for user in users[:current_page*4]:
+                inline_markup.add(types.InlineKeyboardButton(
+                    text=user["name"],
+                    callback_data=f'user_{user["id"]}'
+                ))
+            total_pages = math.ceil(len(users) / 4)
+            current_page += 1
+            inline_markup.row(
+                types.InlineKeyboardButton(text=f'{current_page-1}/{total_pages}', callback_data='None'),
+                types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{current_page}')
+            )
+            await call.message.edit_text(
+                text='Пользователи:',
+                reply_markup=inline_markup
+            )
+            return
     await Pagination.current_page.set()
     async with state.proxy() as data:
         data['current_page'] = int(call.data.split('_')[1])
@@ -198,28 +222,6 @@ async def callback_query(call, state: FSMContext):
                     callback_data=f'user_{user["id"]}'
                 ))
             data['current_page'] += 1
-            inline_markup.row(
-                types.InlineKeyboardButton(text=f'{data["current_page"]-1}/{total_pages}', callback_data='None'),
-                types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{data["current_page"]}')
-            )
-            await call.message.edit_text(
-                text='Пользователи:',
-                reply_markup=inline_markup
-            )
-        if query_type == 'delete' and call.data.split('_')[1] == 'user':
-            total_pages = math.ceil(len(users) / 4)
-            user_id = int(call.data.split('_')[2])
-            data['current_page'] = 1
-            for i, user in enumerate(users):
-                if user['id'] == user_id:
-                    users.pop(i)
-                inline_markup = types.InlineKeyboardMarkup()
-            for user in users[:data['current_page']*4]:
-                inline_markup.add(types.InlineKeyboardButton(
-                    text=user["name"],
-                    callback_data=f'user_{user["id"]}'
-                ))
-            data["current_page"] += 1
             inline_markup.row(
                 types.InlineKeyboardButton(text=f'{data["current_page"]-1}/{total_pages}', callback_data='None'),
                 types.InlineKeyboardButton(text='Вперёд', callback_data=f'next_{data["current_page"]}')
